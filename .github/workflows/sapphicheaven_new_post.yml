@@ -1,0 +1,41 @@
+name: SapphicHeaven New Post
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sapphicheaven-new-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install atproto google-api-python-client google-auth pillow
+
+      - name: Run SapphicHeaven New Post
+        env:
+          BLUESKY_HANDLE: sapphicheaven.bsky.social
+          SAPPHICHEAVEN_PASSWORD: ${{ secrets.SAPPHICHEAVEN_PASSWORD }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python new_post_sapphicheaven.py
