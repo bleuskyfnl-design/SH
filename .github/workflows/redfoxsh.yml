@@ -1,0 +1,54 @@
+
+name: SapphicHeaven RedFox
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sapphicheaven-redfox
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install atproto google-api-python-client google-auth Pillow
+
+      - name: Run RedfoxSH
+        env:
+          BLUESKY_HANDLE: sapphicheaven.bsky.social
+          SAPPHICHEAVEN_PASSWORD: ${{ secrets.SAPPHICHEAVEN_PASSWORD }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python RedfoxSH.py
+
+      - name: Save posting history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add redfox_lesbian_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update RedFox posting history"
+            git push
+          fi
+          
